@@ -1,7 +1,8 @@
 import React from 'react';
 import T from 'prop-types';
-import { Link, IndexLink } from 'react-router';
+import { NavLink } from 'redux-first-router-link';
 import classnames from 'classnames/bind';
+import { connect } from 'react-redux';
 
 // Using CSS Modules so we assign the styles to a variable
 import s from './App.styl';
@@ -61,17 +62,35 @@ export class NotFound extends React.Component {
 export class App extends React.Component {
   static propTypes = {
     children: T.node,
+    userId: T.number,
   };
 
   render() {
     return (
       <div className={cx('App')}>
         <nav className={cx('nav')}>
-          <IndexLink to='/' activeClassName={cx('active')}>Home</IndexLink>
-          <Link to='/about' activeClassName={cx('active')}>About</Link>
+          <NavLink to='/' activeClassName={cx('active')} exact>Home</NavLink>
+          <NavLink to='/user/123' activeClassName={cx('active')}>User 123</NavLink>
+          <NavLink to={{ type: 'USER', payload: { id: 456 }}} activeClassName={cx('active')}>User 456</NavLink>
+          <NavLink to='/about' activeClassName={cx('active')}>About</NavLink>
         </nav>
-        {this.props.children}
+        {this.props.userId && (
+          <div>
+            <h1>User {this.props.userId}</h1>
+            <p>Nothing much here yet</p>
+          </div>
+        )}
       </div>
     );
   }
 }
+
+const mapState = state => ({
+  userId: state.userId,
+});
+
+const mapDispatch = dispatch => ({
+  goToUser: () => dispatch({ type: 'USER', payload: { id: 5 } }),
+});
+
+export default connect(mapState, mapDispatch)(App);
