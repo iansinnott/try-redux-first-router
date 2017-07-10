@@ -55,6 +55,41 @@ export class NotFound extends React.Component {
 }
 
 /**
+ * Holy shit, for some reason I couldn't use Link components here. That was an
+ * odd one...
+ */
+const UserIndex = () => (
+  <nav className={cx('UserIndex')}>
+    <h1>Users</h1>
+    <NavLink to='/user/123'>User 123</NavLink>
+    <NavLink to={{ type: 'USER', payload: { id: 456 }}}>User 456</NavLink>
+  </nav>
+);
+
+const User = connect(state => ({
+  userId: state.userId,
+}))(props => (
+  <div className={cx('User', 'page')}>
+    {props.userId ? (
+      <div>
+        <h1>User {props.userId}</h1>
+        <p>Nothing much here yet other than the fact that we are reading the user ID from state.</p>
+        <p>
+          <strong>User ID: </strong>
+          <code>{props.userId}</code>
+        </p>
+      </div>
+    ) : <UserIndex />}
+  </div>
+));
+
+const Pages = {
+  HOME: Home,
+  ABOUT: About,
+  USER: User,
+};
+
+/**
  * NOTE: As of 2015-11-09 react-transform does not support a functional
  * component as the base compoenent that's passed to ReactDOM.render, so we
  * still use createClass here.
@@ -62,31 +97,29 @@ export class NotFound extends React.Component {
 export class App extends React.Component {
   static propTypes = {
     children: T.node,
-    userId: T.number,
+    page: T.string,
   };
 
   render() {
+    const CurrentPage = Pages[this.props.page] || NotFound;
     return (
       <div className={cx('App')}>
         <nav className={cx('nav')}>
           <NavLink to='/' activeClassName={cx('active')} exact>Home</NavLink>
-          <NavLink to='/user/123' activeClassName={cx('active')}>User 123</NavLink>
-          <NavLink to={{ type: 'USER', payload: { id: 456 }}} activeClassName={cx('active')}>User 456</NavLink>
-          <NavLink to='/about' activeClassName={cx('active')}>About</NavLink>
+          <NavLink to='/user/' activeClassName={cx('active')}>Users</NavLink>
+          {/* <NavLink to={{ type: 'USER' }} activeClassName={cx('active')}>Users</NavLink> */}
+          <NavLink to={{ type: 'ABOUT' }} activeClassName={cx('active')}>About</NavLink>
         </nav>
-        {this.props.userId && (
-          <div>
-            <h1>User {this.props.userId}</h1>
-            <p>Nothing much here yet</p>
-          </div>
-        )}
+        <div className='page'>
+          <CurrentPage />
+        </div>
       </div>
     );
   }
 }
 
 const mapState = state => ({
-  userId: state.userId,
+  page: state.page,
 });
 
 const mapDispatch = dispatch => ({
