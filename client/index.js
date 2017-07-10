@@ -3,7 +3,9 @@ import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import logger from 'redux-logger';
 import { connectRoutes, NOT_FOUND } from 'redux-first-router';
-import { combineReducers, createStore, applyMiddleware, compose } from 'redux';
+import { createStore, applyMiddleware, compose } from 'redux';
+import { combineReducers } from 'redux-immutable';
+import * as Immutable from 'immutable';
 import createHistory from 'history/createBrowserHistory';
 
 import App from './components/App.js';
@@ -16,8 +18,6 @@ const routesMap = {
   USER: '/user/:id',  // :id is a dynamic segment
   ABOUT: '/about',
 };
-
-const { reducer, middleware, enhancer } = connectRoutes(history, routesMap); // yes, 3 redux aspects
 
 /**
  * Is there a better way to do pages? This works just fine, and I rather like
@@ -60,12 +60,33 @@ const page = (state = 'HOME', action) => {
   }
 };
 
+const { reducer, middleware, enhancer } = connectRoutes(history, routesMap, {
+  selectLocationState: state => toJS(state.get('location')),
+});
+
+// A toJS function you can call on anything
+const toJS = x => {
+  if (x && typeof x.toJS === 'function') {
+    return x.toJS();
+  } else {
+    return x;
+  }
+};
+
+// Wrap a non-immutable reducer to make it compatible with an immutable state.
+// This may not be necessary but it's worth noting that without it we are
+// storing a plain javascript object within the larger immutable map
+const wrapReducer = (innerReducer) => (state, action) => {
+  return Immutable.fromJS(innerReducer(toJS(state), action));
+};
+
 const rootReducer = combineReducers({ location: reducer, userId: userIdReducer, page });
 const middlewares = applyMiddleware(middleware, logger);
 const store = createStore(rootReducer, compose(enhancer, middlewares));
 
 function exposeGlobals(root, globals = {}) {
   Object.assign(root, globals);
+  window.Immutable = Immutable;
 }
 
 if (process.env.NODE_ENV === 'development') {

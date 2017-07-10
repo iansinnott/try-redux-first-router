@@ -67,7 +67,7 @@ const UserIndex = () => (
 );
 
 const User = connect(state => ({
-  userId: state.userId,
+  userId: state.get('userId'),
 }))(props => (
   <div className={cx('User', 'page')}>
     {props.userId ? (
@@ -119,7 +119,7 @@ export class App extends React.Component {
 }
 
 const mapState = state => ({
-  page: state.page,
+  page: state.get('page'),
 });
 
 const mapDispatch = dispatch => ({
