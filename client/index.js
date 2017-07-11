@@ -61,7 +61,7 @@ const page = (state = 'HOME', action) => {
 };
 
 const { reducer, middleware, enhancer } = connectRoutes(history, routesMap, {
-  selectLocationState: state => toJS(state.get('location')),
+  location: state => toJS(state.get('location')),
 });
 
 // A toJS function you can call on anything
